@@ -1,0 +1,52 @@
+html
+	head
+		title Ajax App - #{title}
+		link(rel="stylesheet" href="//fonts.googleapis.com/css?family=Josefin+Sans")
+		script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js")
+	body
+		include nav.pug
+	div.search
+		h1 Search User Database
+		form(method='POST' action='/search')
+			div.searchBar
+				input(id='autocomplete' type='text' placeholder='Search' name='search')
+			div.searchButton
+				button(type='submit' value='submit') Search
+			div.searchResult
+				h1 Suggestions:
+				ul(id= 'results')
+				//- table
+				//- 	tr
+				//- 		th Name
+				//- 		th Email
+				//- - for (i = 0; i < searchResult.length; i++)
+				//- 	table
+				//- 		tr 
+				//- 			td #{searchResult[i].firstname} #{searchResult[i].lastname} 	
+				//- 			td #{searchResult[i].email}
+
+
+	script.
+		$(document).ready(function() {
+			$('#autocomplete').keyup(function(){
+				var input = $('#autocomplete').val();
+				console.log(input);
+				if (input !='') {
+					$.ajax({
+					url:'/search',
+					method: 'POST',
+					type: 'JSON',
+					data: {input:input},
+					success: function(data){
+						$('.list').remove()
+						for (i = 0; i < data.finder.length; i++){
+							$('#results').append("<li class='list'>"+ data.finder[i]+'</li>')
+						}
+					}
+					})
+				}
+			})
+		})
+
+style
+	include stylesheet.css 
