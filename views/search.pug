@@ -13,40 +13,54 @@ html
 			div.searchButton
 				button(type='submit' value='submit') Search
 			div.searchResult
-				h1 Suggestions:
+				table
+					tr
+						th Name
+						th Email
+				- for (i = 0; i < searchResult.length; i++)
+					table
+						tr 
+							td #{searchResult[i].firstname} #{searchResult[i].lastname} 	
+							td #{searchResult[i].email}
+
+				h1 Suggestions
+				hr
 				ul(id= 'results')
-				//- table
-				//- 	tr
-				//- 		th Name
-				//- 		th Email
-				//- - for (i = 0; i < searchResult.length; i++)
-				//- 	table
-				//- 		tr 
-				//- 			td #{searchResult[i].firstname} #{searchResult[i].lastname} 	
-				//- 			td #{searchResult[i].email}
 
+//- Modify your form so that every time the user enters a key, it makes an AJAX call that populates the search results.
+//- Part 2 Modify your form again so that AJAX requests happen at most once every 300 milliseconds.
 
-	script.
-		$(document).ready(function() {
-			$('#autocomplete').keyup(function(){
-				var input = $('#autocomplete').val();
-				console.log(input);
-				if (input !='') {
+script.
+	$(document).ready(function(){													
+		var now = Date.now();																			//Declaring the variable now with the method Date.now();
+		$('#autocomplete').keyup(function(){											//Every key input of the user on the searchBar will invoke the jquery ajax post request.
+			if(Date.now() - now >= 300){														//This if statement will place an interval of 300 milliseconds per request, therefore a new request may be invoked after this time interval.  
+				now = Date.now()																			//The now variable will re-iterated after the 300 milliseconds. 
+				var input = $('#autocomplete').val();									//Declaring the input variable which is equal to returned value by the val method. 
+				console.log(input);																		
+				if (input != '') {																		//If the variable input is not empty, invoke the ajax jquery request.	
 					$.ajax({
-					url:'/search',
+					url:'/suggestion',
 					method: 'POST',
 					type: 'JSON',
-					data: {input:input},
-					success: function(data){
-						$('.list').remove()
-						for (i = 0; i < data.finder.length; i++){
-							$('#results').append("<li class='list'>"+ data.finder[i]+'</li>')
+					data: {input: input},
+						success: function(data){												 //When the reuest is successful, a for loop will be performed that will go through the data of searchResult.
+							if (data.searchResult) {
+								$('.list').remove();												 //The remove() the suggestion list when a new keyup value is inserted into the search bar. 
+								for (i = 0; i < data.searchResult.length; i++){ 										//Loops through the data of searchResults 
+									var userName = `${data.searchResult[i].firstname} ${data.searchResult[i].lastname}`;
+									$('#results').append("<li class= 'list'>"+ userName  +'</li>')  //Appends a new list item in the suggestionbox. 
+								}
+							}
+						},
+						failure: function(err) {
+							console.log(err);
 						}
-					}
-					})
+					});
 				}
-			})
-		})
+			};
+		});
+	});
 
 style
-	include stylesheet.css 
+	include stylesheet.css

@@ -6,7 +6,8 @@ app.use(express.static('public'));
 app.use(bodyParser.urlencoded());
 app.set('view engine', 'pug');
 
-//Home page route
+/*--------------------------------------Home page route-----------------------------------------*/
+
 app.get('/', (req, res) => {
 	res.render('index', {
 		title: 'Home'
@@ -27,6 +28,8 @@ app.get('/users', (req, res) => {
 	});
 });		
 
+/*-------------------------------------Search page route-----------------------------------------*/
+
 app.get('/search', (req, res) => {
 	res.render('search', {
 		title: 'Search Bar',
@@ -41,37 +44,46 @@ app.post('/search', (req, res) => {
 		}
 		let parsedData = JSON.parse(userData);
 		let searchResult = [];
-		parsedData.forEach(function(user){
-			if (user.firstname.toLowerCase() === req.body.search.toLowerCase() || user.lastname.toLowerCase() === req.body.search.toLowerCase()) {
-				searchResult.push(user);
-			}
-		});
+		if (req.body.search) {
+			search = req.body.search.toLowerCase()
+			parsedData.forEach(function(user){
+				if (user.firstname.toLowerCase() === search || user.lastname.toLowerCase() === search) {
+					searchResult.push(user);
+				}
+			});
+		}
 		res.render('search', {
-		title: 'results',
+		title: 'Search',
 		searchResult: searchResult
-	});
+		});
 	});
 });
 
-app.post('/search', (req, res) => {
-	let suggest = req.body.suggest;
-	console.log(suggest);
-		fs.readFile('allusers.json', function(err, data){
-			if (err) {
-				console.log("This file cannot be read.")
-			}
-		})
+/*-----------------------------Search page (suggestion) route-----------------------------------*/
+//Part 1: Modify your form so that every time the user enters a key, it makes an AJAX call that populates the search results.
 
-		let parsedData = JSON.parse(data);
-		let searchResult = [];
-		console.log(searchResult);
-		for (i = 0; i < parsedData.length; ++i) {
-			if (parsedData[i].firstname.slice(0, suggest.length) === suggest || parsedData[i].lastname.slice(0, suggest.length) === suggest || parsedData[i].email.slice(0, suggest.length) === suggest){
-				searchResult.push(users[i].firstname + " " + user[i].lastname);
-			};
-			res.json({status: 200, finder: searchResults})
-		};
+app.post('/suggestion', (req, res) => {						//Post request route for the autocomplete suggestions into the search bar.
+	fs.readFile("allusers.json", (err, userData) => {		//Reads the JSON file allusers.json.
+		if (err) {
+			console.log('File not found!')					
+		}
+		let parsedData = JSON.parse(userData);				//Parsing the JSON file.
+		let searchResult = [];								//Declaring an empty array to store up the suggestion results.
+		if (req.body.input) {								//If statement that will loop through each element and compares the user input with the allusers.json elements.
+			input = req.body.input.toLowerCase()
+			parsedData.forEach(function(user){
+				if (user.firstname.slice(0, input.length).toLowerCase() === input || user.lastname.slice(0, input.length).toLowerCase() === input) {
+					searchResult.push(user);				//Each key value of the user input will be compared with the keys firstname or lastname by using the slice method, which essentially selects a given starting argument and ending argument of the selection, in this case the index 0 and the length of the input.
+				}
+			});
+		} 
+		res.status(200).json({								//res.json() sends a JSON response including a stringified version of the searchResult. Including the statuscode 200 (success).
+			searchResult: searchResult
+		});
+	});
 });
+
+/*--------------------------------------Add user route------------------------------------------*/
 
 app.get('/adduser', (req, res) => {
 	res.render('adduser', {
@@ -85,16 +97,16 @@ app.post('/adduser', (req, res) => {
 			console.log('File not found!');
 		}
 		let userFile = JSON.parse(userData);
-  		userFile.push({ firstname: req.body.firstname, lastname: req.body.lastname, email: req.body.email }); 
-  		fs.writeFile("allusers.json", JSON.stringify(userFile), function(err){
-    		if (err) throw err;
-    	console.log('The data was appended to file!');
-    	res.redirect('/users');
-	   	});
+		userFile.push({ firstname: req.body.firstname, lastname: req.body.lastname, email: req.body.email }); 
+		fs.writeFile("allusers.json", JSON.stringify(userFile), function(err){
+			if (err) throw err;
+		console.log('The data was appended to file!');
+		res.redirect('/users');
+		});
 	});
 });
 
-//Initiated a local server on port 4000
-app.listen(4000, () => {
-    console.log('listening');
+//Initiated a local server on port 3000
+app.listen(3000, () => {
+	console.log('listening port 3000');
 });

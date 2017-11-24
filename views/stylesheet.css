@@ -147,6 +147,14 @@ nav li a:hover {
     font-size: 10pt;
 }
 
+.searchResult hr{
+    border: 1px solid black;
+}
+
+.searchResult ul{
+    color: white;
+}
+
 .search table {
     width: 100%;
     border-collapse: collapse;
